@@ -20,21 +20,45 @@
 // 7. Output the ID of the selected event on the EventDetailPage
 // BONUS: Add another (nested) layout route that adds the <EventNavigation> component above all /events... page components
 
-import { RouterProvider, createBrowserRouter} from 'react-router-dom'
-import HomePage from './pages/Home';
-import EventsPage from './pages/Events';
-import EventDetailPage from './pages/EventDetail';
-import NewEventPage from './pages/NewEvent';
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import HomePage from "./pages/Home";
+import EventsPage, { loader as eventsLoader } from "./pages/Events";
+import EventDetailPage from "./pages/EventDetail";
+import NewEventPage from "./pages/NewEvent";
+import EditEventPage from "./pages/EditEvent";
+import RootLayout from "./pages/Root";
+import EventsRootLayout from "./pages/EventsRoot";
 
 const router = createBrowserRouter([
-  { path: '/', element: <HomePage />},
-  { path: '/events', element: <EventsPage />},
-  { path: '/events/:eventId', element: <EventDetailPage />},
-  { path: '/events/new', element: <NewEventPage />},
-])
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      {
+        path: "events",
+        element: <EventsRootLayout />,
+        children: [
+          {
+            index: true,
+            element: <EventsPage />,
+            // loader는 함수를 값으로 취하는 프로퍼티
+            // 일반함수 오류함수 모두 값으로 취할 수 있다.
+            // 이 라우트를 방문하기 직전에 리액트 라우터는 항상 이함수를 실행할 것임.
+            loader: eventsLoader, 
+            // 리액트 라우터는 데이터를 가져올 때까지, 즉 loader가 작업을 완료할 때까지 대기하고요 그리고 가져온 데이터로 페이지를 렌더링하게 되죠
+          },
+          { path: ":eventId", element: <EventDetailPage /> },
+          { path: "new", element: <NewEventPage /> },
+          { path: ":eventId/edit", element: <EditEventPage /> },
+        ],
+      },
+    ],
+  },
+]);
 
 function App() {
-  return <div></div>;
+  return <RouterProvider router={router} />;
 }
 
 export default App;
