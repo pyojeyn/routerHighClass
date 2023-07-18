@@ -23,16 +23,23 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import HomePage from "./pages/Home";
 import EventsPage, { loader as eventsLoader } from "./pages/Events";
-import EventDetailPage from "./pages/EventDetail";
+import EventDetailPage, {
+  loader as eventDetailLoader,
+  action as deleteEventAction,
+} from "./pages/EventDetail";
 import NewEventPage from "./pages/NewEvent";
 import EditEventPage from "./pages/EditEvent";
 import RootLayout from "./pages/Root";
 import EventsRootLayout from "./pages/EventsRoot";
+import ErrorPage from "./pages/Error";
+import { action as manipulateEventAction } from "./components/EventForm";
+import NewsletterPage, { action as newsletterAction } from "./pages/Newsletter";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <RootLayout />,
+    errorElement: <ErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
       {
@@ -45,13 +52,40 @@ const router = createBrowserRouter([
             // loader는 함수를 값으로 취하는 프로퍼티
             // 일반함수 오류함수 모두 값으로 취할 수 있다.
             // 이 라우트를 방문하기 직전에 리액트 라우터는 항상 이함수를 실행할 것임.
-            loader: eventsLoader, 
+            loader: eventsLoader,
             // 리액트 라우터는 데이터를 가져올 때까지, 즉 loader가 작업을 완료할 때까지 대기하고요 그리고 가져온 데이터로 페이지를 렌더링하게 되죠
           },
-          { path: ":eventId", element: <EventDetailPage /> },
-          { path: "new", element: <NewEventPage /> },
-          { path: ":eventId/edit", element: <EditEventPage /> },
+
+          {
+            path: ":eventId",
+            /* 여기다 하면 여기보다 낮은 레벨의 라우터을이 이 데이터에 접근 할 수 있다.
+             대신에 이 loader 데이터를 사용하려면 즉 이 부모 라우트의 데이터를 사용하려면 우린 특수 id(event-detail) 프로퍼티를 추가해야 함. */
+            id: "event-detail",
+            loader: eventDetailLoader,
+            children: [
+              {
+                index: true,
+                element: <EventDetailPage />,
+                action: deleteEventAction,
+              },
+              {
+                path: "edit",
+                element: <EditEventPage />,
+                action: manipulateEventAction,
+              },
+            ],
+          },
+          {
+            path: "new",
+            element: <NewEventPage />,
+            action: manipulateEventAction,
+          },
         ],
+      },
+      {
+        path: "newsletter",
+        element: <NewsletterPage />,
+        action: newsletterAction,
       },
     ],
   },
